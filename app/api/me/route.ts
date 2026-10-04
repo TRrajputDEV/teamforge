@@ -1,6 +1,5 @@
 import { getAuthenticatedUser } from "@/lib/auth";
 import pool from "@/lib/db";
-import { hasRole } from "@/lib/authorization";
 
 export async function GET() {
   const user = await getAuthenticatedUser();
@@ -13,20 +12,11 @@ export async function GET() {
   }
 
   const result = await pool.query(
-    "SELECT role FROM users WHERE id = $1",
+    "SELECT id, name, email, role FROM users WHERE id = $1",
     [user.userId]
   );
 
-  const dbUser = result.rows[0];
-
-  if (!dbUser || !hasRole(dbUser.role, ["ADMIN"])) {
-    return Response.json(
-      { message: "Forbidden" },
-      { status: 403 }
-    );
-  }
-
   return Response.json({
-    message: "Welcome, Admin",
+    user: result.rows[0],
   });
 }
